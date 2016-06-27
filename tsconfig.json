@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "outDir": "public/js",
+    "rootDir": "src",
+    "declaration": true
+  },
+  "exclude": [
+    "public",
+    "node_modules"
+  ]
+}

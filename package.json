@@ -2,8 +2,12 @@
   "name": "simplified-web-reader",
   "version": "0.0.1",
   "description": "javascript epub reader",
+  "repository": {
+    "git": "https://github.com/NYPL-Simplified/web-reader"
+  },
   "main": "server/index.js",
   "scripts": {
+    "compile": "tslint -c tslint.json src/*.ts && rm -rf public/js && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "matthew skomarovsky",
@@ -11,5 +15,10 @@
   "dependencies": {
     "ejs": "^2.4.2",
     "express": "^4.14.0"
+  },
+  "devDependencies": {
+    "tslint": "^3.12.1",
+    "typescript": "^1.8.10",
+    "typings": "^1.3.0"
   }
 }
