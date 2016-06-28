@@ -18,7 +18,7 @@ class Pages {
   currentPosition: PositionData;
   range: Range;
 
-  constructor({ margin = 50, layoutPages = 1, fontSize = 30} = {}) {
+  constructor({ margin = 50, layoutPages = 1, fontSize = 20} = {}) {
     this.margin = margin;
     this.currentPage = 0;
     this.currentPosition = { textNodeIndex: 0, charIndex: 0 };
@@ -57,7 +57,7 @@ class Pages {
     this.body.style.height = this.bodyHeight + "px";
     this.body.style.columnWidth = this.columnWidth + "px";
     this.body.style.columnGap =  this.columnGap + "px";
-    this.body.style.fontSize = this.fontSize + "px";
+    this.body.style.setProperty("font-size", this.fontSize + "px", "important");
   }
 
   setFontSize(size: number): void {
@@ -172,15 +172,31 @@ class Pages {
 
   saveCurrentPosition() {
     this.currentPosition = this.getPosition();
+    let pos = this.currentPosition;
+    console.log(`saved current position to textNodeIndex ${pos.textNodeIndex} and charIndex ${pos.charIndex}`);
   }
 
-  loadPosition({ textNodeIndex, charIndex }: PositionData): void {
+  goToPosition({ textNodeIndex, charIndex }: PositionData): void {
     let textNode = this.textNodes[textNodeIndex];
     this.range.setStart(textNode, charIndex);
     this.range.setEnd(textNode, charIndex + 1);
     let left = this.range.getBoundingClientRect().left;
     let page = this.currentPage + Math.floor(left / this.pageWidth);
     this.goToPage(page);
+  }
+
+  showPosition(): void {
+    let textNode = this.textNodes[this.currentPosition.textNodeIndex];
+    this.range.setStart(textNode, this.currentPosition.charIndex);
+    this.range.setEnd(textNode, this.currentPosition.charIndex + 1);
+    let selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(this.range);
+  }
+
+  hidePosition(): void {
+    let selection = window.getSelection();
+    selection.removeAllRanges();
   }
 }
 
@@ -195,7 +211,7 @@ document.addEventListener("DOMContentLoaded", function() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function() {
       pages.render();
-      pages.loadPosition(pages.currentPosition);
+      pages.goToPosition(pages.currentPosition);
       pages.saveCurrentPosition();
     }, 250);
   });

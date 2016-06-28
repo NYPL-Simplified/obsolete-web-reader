@@ -1,0 +1,129 @@
+/**/
+p {
+    margin-top: 0.75em;
+    text-align: justify;
+    text-indent: 1.25em;
+    margin-bottom: 0.75em
+    }
+img {
+    border: 0
+    }
+.tnote {
+    margin-left: 10%;
+    margin-right: 10%;
+    padding-bottom: 0.5em;
+    padding-top: 0.5em;
+    padding-left: 0.5em;
+    padding-right: 0.5em
+    }
+ins {
+    text-decoration: none;
+    border-bottom: thin dotted gray
+    }
+h1, h2, h3, h4, h5, h6 {
+    text-align: center;
+    /* all headings centered */
+    clear: both
+    }
+hr {
+    margin-top: 2em;
+    margin-bottom: 2em;
+    margin-left: auto;
+    margin-right: auto;
+    clear: both
+    }
+.tb {
+    width: 50%
+    }
+table {
+    margin-left: auto;
+    margin-right: auto
+    }
+body {
+    margin-left: 10%;
+    margin-right: 10%
+    }
+.pagenum {
+    /* uncomment the next line for invisible page numbers */
+    /*  visibility: hidden;  */
+    font-size: smaller;
+    text-align: right
+    }
+/* page numbers */
+.copyright {
+    text-align: center;
+    font-size: 70%
+    }
+.small {
+    font-size: 70%
+    }
+.big {
+    font-size: 110%
+    }
+.adtitle2 {
+    font-size: 150%;
+    font-weight: bold;
+    text-align: center
+    }
+.adtitle1 {
+    font-size: 200%;
+    font-weight: bold;
+    text-align: center
+    }
+.author {
+    font-size: 120%;
+    text-align: center
+    }
+.center {
+    text-align: center
+    }
+.smcap {
+    font-variant: small-caps
+    }
+.chaptertitle {
+    text-align: center;
+    font-size: 110%;
+    font-weight: bold;
+    margin-bottom: 1.5em
+    }
+.caption {
+    font-weight: bold;
+    font-size: 90%
+    }
+.figcenter {
+    margin: auto;
+    text-align: center
+    }
+.unindent {
+    margin-top: 0.75em;
+    text-align: justify;
+    margin-bottom: 0.75em
+    }
+.right {
+    text-align: right
+    }
+.poem {
+    margin-left: 30%;
+    text-align: left
+    }
+.poem2 {
+    margin-left: 15%;
+    text-align: left
+    }
+.sig {
+    margin-right: 10%;
+    text-align: right
+    }
+.cap:first-letter {
+    clear: left;
+    margin: -0.2em 0.1em 0;
+    margin-top: 0%;
+    padding: 0;
+    line-height: 0.75em;
+    font-size: 300%;
+    text-align: justify
+    }
+.cap {
+    text-align: justify
+    }
+/**/

@@ -1,0 +1,13 @@
+html body {
+  position: relative;
+  overflow: hidden;
+}
+
+html body p {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+}
+
+html body img {
+  width: 100%;
+}

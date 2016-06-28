@@ -1,6 +1,6 @@
 var Pages = (function () {
     function Pages(_a) {
-        var _b = _a === void 0 ? {} : _a, _c = _b.margin, margin = _c === void 0 ? 50 : _c, _d = _b.layoutPages, layoutPages = _d === void 0 ? 1 : _d, _e = _b.fontSize, fontSize = _e === void 0 ? 30 : _e;
+        var _b = _a === void 0 ? {} : _a, _c = _b.margin, margin = _c === void 0 ? 50 : _c, _d = _b.layoutPages, layoutPages = _d === void 0 ? 1 : _d, _e = _b.fontSize, fontSize = _e === void 0 ? 20 : _e;
         this.margin = margin;
         this.currentPage = 0;
         this.currentPosition = { textNodeIndex: 0, charIndex: 0 };
@@ -30,7 +30,7 @@ var Pages = (function () {
         this.body.style.height = this.bodyHeight + "px";
         this.body.style.columnWidth = this.columnWidth + "px";
         this.body.style.columnGap = this.columnGap + "px";
-        this.body.style.fontSize = this.fontSize + "px";
+        this.body.style.setProperty("font-size", this.fontSize + "px", "important");
     };
     Pages.prototype.setFontSize = function (size) {
         this.fontSize = size;
@@ -121,8 +121,10 @@ var Pages = (function () {
     };
     Pages.prototype.saveCurrentPosition = function () {
         this.currentPosition = this.getPosition();
+        var pos = this.currentPosition;
+        console.log("saved current position to textNodeIndex " + pos.textNodeIndex + " and charIndex " + pos.charIndex);
     };
-    Pages.prototype.loadPosition = function (_a) {
+    Pages.prototype.goToPosition = function (_a) {
         var textNodeIndex = _a.textNodeIndex, charIndex = _a.charIndex;
         var textNode = this.textNodes[textNodeIndex];
         this.range.setStart(textNode, charIndex);
@@ -130,6 +132,18 @@ var Pages = (function () {
         var left = this.range.getBoundingClientRect().left;
         var page = this.currentPage + Math.floor(left / this.pageWidth);
         this.goToPage(page);
+    };
+    Pages.prototype.showPosition = function () {
+        var textNode = this.textNodes[this.currentPosition.textNodeIndex];
+        this.range.setStart(textNode, this.currentPosition.charIndex);
+        this.range.setEnd(textNode, this.currentPosition.charIndex + 1);
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(this.range);
+    };
+    Pages.prototype.hidePosition = function () {
+        var selection = window.getSelection();
+        selection.removeAllRanges();
     };
     return Pages;
 }());
@@ -142,7 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function () {
             pages.render();
-            pages.loadPosition(pages.currentPosition);
+            pages.goToPosition(pages.currentPosition);
             pages.saveCurrentPosition();
         }, 250);
     });
