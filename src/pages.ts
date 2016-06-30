@@ -1,15 +1,22 @@
-interface PositionData {
+export interface PositionData {
   imageIndex: number;
   textNodeIndex: number;
   charIndex: number;
 }
 
-class Pages {
+export interface PagesConfig {
+  margin?: number;
+  columns?: number;
+  fontSize?: number;
+  bgColor?: string;
+}
+
+export default class Pages {
   body: HTMLElement;
   textNodes: Element[];
   images: Element[];
   margin: number;
-  layoutPages: number;
+  columns: number;
   fontSize: number;
   bgColor: string;
   pageWidth: number;
@@ -21,11 +28,11 @@ class Pages {
   range: Range;
   pageCountInterval: number;
 
-  constructor({ margin = 60, layoutPages = 1, fontSize = 30, bgColor = "#fff" } = {}) {
-    this.margin = margin;
-    this.layoutPages = layoutPages;
-    this.fontSize = fontSize;
-    this.bgColor = bgColor;
+  constructor(config: PagesConfig = {}) {
+    this.margin = config.margin || 60;
+    this.columns = config.columns || 1;
+    this.fontSize = config.fontSize || 30;
+    this.bgColor = config.bgColor || "#fff";
     this.currentPage = 0;
 
     this.body = document.getElementsByTagName("body").item(0);
@@ -34,6 +41,7 @@ class Pages {
     this.images = this._getImages();
     this.range = document.createRange();
 
+    this._setupKeyHandling();
     this._setupTouchHandling();
     this._render();
   }
@@ -51,7 +59,7 @@ class Pages {
   }
 
   setColumns(num: number): void {
-    this.layoutPages = num;
+    this.columns = num;
     this._render();
   }
 
@@ -60,30 +68,20 @@ class Pages {
     this._render();
   }
 
-  prevPage(): number {
-    return Math.max(0, this.currentPage - this.layoutPages);
-  }
-
-  nextPage(): number {
-    return Math.min(this.lastPage, this.currentPage + this.layoutPages);
-  }
-
-  displayPage(n: number): number {
-    return n + 1;
-  }
-
   goToPrevPage(): void {
-    this.goToPage(this.prevPage());
+    this._goToPage(this._prevPage());
   }
 
   goToNextPage(): void {
-    this.goToPage(this.nextPage());
+    this._goToPage(this._nextPage());
   }
 
-  goToPage(n: number): void {
-    this.body.style.left = -n * (this.layoutPages * (this.columnWidth + this.margin)) + "px";
-    this.currentPage = n;
-    console.log(`moved to page ${n}`);
+  getCurrentPage(): number {
+    return this.currentPage + 1;
+  }
+
+  getPageCount(): number {
+    return this.lastPage + 1;
   }
 
   getPosition(): PositionData {
@@ -91,47 +89,56 @@ class Pages {
     let imageIndex = this._getImageIndex();
 
     // find first text node with left edge on the current page or a higher page
-    let foundIndex = this._getTextNodeIndex();
+    let foundTextNodeIndex = this._getTextNodeIndex();
 
-    if (foundIndex === -1) {
-      // if we found an image on this page but no text node, use the image
+    // if we didn't find a text node on this page
+    if (foundTextNodeIndex === -1) {
+      // if we found an image, use the image
       if (imageIndex !== -1) {
         return this._imagePosition(imageIndex);
       }
 
-      throw(`Can't find paragraph starting on page ${this.currentPage} or higher`);
+      // if nothing's on this page, something's wrong
+      throw(
+        `Can't find paragraph or image starting ` +
+        `on page ${this.currentPage} or higher`
+      );
     }
 
-    // search in previous paragraph and found paragraph for text located
-    // within current page
-    let textNodeIndex = -1;
-    let charIndex = -1;
+    // ok we found a text node beginning on this page, but the previous text
+    // node (if it exists) might end on this page. so we search both text nodes
+    // for the first character that appears on this page
+    let textNodeIndexes: number[] =
+      foundTextNodeIndex === 0 ?
+      [foundTextNodeIndex] :
+      [foundTextNodeIndex - 1, foundTextNodeIndex];
 
-    search:
-    for (let i = Math.max(0, foundIndex - 1); i <= foundIndex; i++) {
-      let textNode = this.textNodes[i];
-      charIndex = 0;
-      for (let j = 0; j < textNode.textContent.length; j++) {
-        this.range.setStart(textNode, j);
-        this.range.setEnd(textNode, j + 1);
-        let { left, top } = this.range.getBoundingClientRect();
-        if (0 < left && left < this.pageWidth) {
-          textNodeIndex = i;
-          break search;
-        }
-        charIndex += 1;
+    let [textNodeIndex, charIndex] = textNodeIndexes.reduce((result, index) => {
+      if (result[1] !== -1) {
+        return result;
+      } else {
+        return [
+          index,
+          this._findCharOnCurrentPage(this.textNodes[index])
+        ]
       }
-    }
+    }, [-1, -1]);
 
-    if (textNodeIndex === -1) {
+    // if we didn't find a character on this page
+    if (charIndex === -1) {
+      // if we found an image, use the image
       if (imageIndex !== -1) {
         return this._imagePosition(imageIndex);
       }
 
-      throw(`Can't find any text in text nodes ${foundIndex - 1} or ${foundIndex} on page ${this.currentPage}`);
+      // we found neither character nor image, something went wrong
+      throw(
+        `Can't find any text in text nodes ${foundTextNodeIndex - 1} or ` +
+        `${foundTextNodeIndex} on page ${this.currentPage}`
+      );
     }
 
-    // if we found an image and a text node, use image if it's higher on the page
+    // if we found an image and a character, use the one that's higher on the page
     if (imageIndex !== -1) {
       let imageTop = this.images[imageIndex].getBoundingClientRect().top;
       let textTop = this._getTextNodeRect(this.textNodes[textNodeIndex]).top;
@@ -158,7 +165,7 @@ class Pages {
     }
 
     let page = this.currentPage + Math.floor(left / this.pageWidth);
-    this.goToPage(page);
+    this._goToPage(page);
   }
 
   // PRIVATE METHODS
@@ -167,17 +174,17 @@ class Pages {
     width = width || window.innerWidth;
     height = height || window.innerHeight;
 
-    this.pageWidth = Math.floor(width / this.layoutPages);
     this.columnWidth = Math.floor((
       width // start with full width
       - 2 * this.margin // subtract actual margins
-      - (this.layoutPages - 1) * this.margin // subtract margin again for each column gap
-    ) / this.layoutPages); // divide remianing width by number of columns
+      - (this.columns - 1) * this.margin // subtract margin again for each column gap
+    ) / this.columns); // divide remianing width by number of columns
     this.columnGap = this.margin;
+    this.pageWidth = this.columns * (this.columnWidth + this.margin);
     this.bodyHeight = height - 2 * this.margin;
 
     this._updateBodyStyle();
-    this.goToPage(this.currentPage); // otherwise first page animation doesn't work
+    this._goToPage(this.currentPage); // otherwise first page animation doesn't work
   }
 
   _queryString(object: any): string {
@@ -193,59 +200,57 @@ class Pages {
     return str ? "?" + str : "";
   }
 
-  _simplifiedAjaxRequest(eventType, data): void {
+  _sendSimplifiedRequest(eventType, data): void {
     let request = new XMLHttpRequest();
     request.open("GET", `simplified://${eventType}${this._queryString(data)}`);
     request.send();
   }
 
-  _setupTouchHandling(): void {
+  _setupKeyHandling(): void {
     window.addEventListener("keydown", e => {
       switch (e.key) {
         case "ArrowLeft":
           this.goToPrevPage();
+          e.preventDefault();
           break;
         case "ArrowRight":
           this.goToNextPage();
+          e.preventDefault();
           break;
       }
-
-      // disable mobile scrolling with left/right arrows
-      e.preventDefault();
     });
+  }
 
-    // touch handling
+  _setupTouchHandling(): void {
     let touchProximity = 10;
     let touchStart = {} as any;
 
     window.addEventListener("touchstart", (e: TouchEvent) => {
-      if (e.target["nodeName"] === "IMG") {
-        this._simplifiedAjaxRequest("imageClick", {
-          src: e.target["src"]
-        });
-        touchStart = {};
-      } else if (e.target["nodeName"] === "A") {
-        this._simplifiedAjaxRequest("linkClick", {
-          href: e.target["href"]
-        });
-        touchStart = {};
-      } else {
-        touchStart.x = e.touches[0].clientX;
-        touchStart.y = e.touches[0].clientY;
-      }
-
+      touchStart.x = e.touches[0].clientX;
+      touchStart.y = e.touches[0].clientY;
       e.preventDefault();
     });
 
     window.addEventListener("touchend", (e: TouchEvent) => {
-      if (touchStart.x && touchStart.y &&
-          e.changedTouches[0].clientX - touchStart.x <= touchProximity &&
-          e.changedTouches[0].clientY - touchStart.y <= touchProximity) {
-        this._simplifiedAjaxRequest("readerTapEvent", {
-          x: e.changedTouches[0].clientX,
-          y: e.changedTouches[0].clientY
+      if (e.target["nodeName"] === "IMG") {
+        this._sendSimplifiedRequest("imageClick", {
+          src: e.target["src"]
         });
+      } else if (e.target["nodeName"] === "A" && e.target["href"]) {
+        this._sendSimplifiedRequest("linkClick", {
+          href: e.target["href"]
+        });
+      } else {
+        if (touchStart.x && touchStart.y &&
+            e.changedTouches[0].clientX - touchStart.x <= touchProximity &&
+            e.changedTouches[0].clientY - touchStart.y <= touchProximity) {
+          this._sendSimplifiedRequest("readerTapEvent", {
+            x: e.changedTouches[0].clientX,
+            y: e.changedTouches[0].clientY
+          });
+        }
       }
+
       e.preventDefault();
     });
 
@@ -256,8 +261,8 @@ class Pages {
   _updateBodyStyle(): void {
     // set body width to correct for rounding errors
     this.body.style.width =
-      this.layoutPages * this.columnWidth
-      + (this.layoutPages - 1) * this.margin
+      this.columns * this.columnWidth
+      + (this.columns - 1) * this.margin
       + "px";
     this.body.style.margin = this.margin + "px";
     this.body.style.height = this.bodyHeight + "px";
@@ -274,11 +279,25 @@ class Pages {
       let lastPage = Math.ceil(this.body.scrollWidth / this.pageWidth) - 1;
       if (lastPage === this.lastPage) {
         clearInterval(this.pageCountInterval);
-        console.log(`setup ${this.displayPage(this.lastPage)} pages with ${this.layoutPages} columns`);
+        console.log(`setup ${this.lastPage + 1} pages with ${this.columns} columns`);
       } else {
         this.lastPage = lastPage;
       }
     }, 500);
+  }
+
+  _prevPage(): number {
+    return Math.max(0, this.currentPage - this.columns);
+  }
+
+  _nextPage(): number {
+    return Math.min(this.lastPage, this.currentPage + this.columns);
+  }
+
+  _goToPage(n: number): void {
+    this.body.style.left = -n * this.pageWidth + "px";
+    this.currentPage = n;
+    console.log(`moved to page ${n}`);
   }
 
   _getImages(): Element[] {
@@ -315,13 +334,22 @@ class Pages {
     });
   }
 
+  _findCharOnCurrentPage(textNode: Element): number {
+    for (let i = 0; i < textNode.textContent.length; i++) {
+      this.range.setStart(textNode, i);
+      this.range.setEnd(textNode, i + 1);
+
+      let { left, top } = this.range.getBoundingClientRect();
+
+      if (0 < left && left < this.pageWidth) {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
   _imagePosition(imageIndex: number): PositionData {
     return { imageIndex, textNodeIndex: null, charIndex: null };
   }
 }
-
-let pages;
-
-document.addEventListener("DOMContentLoaded", () => {
-  pages = new Pages();
-});
