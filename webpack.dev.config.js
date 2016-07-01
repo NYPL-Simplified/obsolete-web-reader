@@ -7,9 +7,9 @@ var config = {
     ],
   },
   output: {
-    filename: "pagination.js",
+    filename: "web-reader.js",
     publicPath: "http://localhost:8090/js",
-    library: "Pages",
+    library: "WebReader",
     libraryTarget: "umd"
   },
   plugins: [

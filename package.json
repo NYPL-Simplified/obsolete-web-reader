@@ -7,10 +7,10 @@
   },
   "main": "server/index.js",
   "scripts": {
-    "dev-build": "webpack-dev-server --progress --history-api-fallback --content-base build --port 3002 --config webpack.dev.config",
+    "dev-build": "webpack-dev-server --progress --history-api-fallback --content-base build --port 3002 --config webpack.config",
     "dev-serve": "node server/index.js",
     "dev": "npm run dev-serve | npm run dev-build",
-    "build": "NODE_ENV=production webpack -p --progress --display-modules --config webpack.prod.config",
+    "build": "NODE_ENV=production webpack -p --progress --display-modules --config webpack.config",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "matthew skomarovsky",

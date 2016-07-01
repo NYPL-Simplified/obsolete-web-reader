@@ -1,17 +1,24 @@
 var webpack = require("webpack");
 
+var output = {
+  filename: "web-reader.js",
+  library: "WebReader",
+  libraryTarget: "umd"
+};
+
+if (process.env.NODE_ENV === "production") {
+  Object.assign(output, { path: "./dist/js" });
+} else {
+  Object.assign(output, { publicPath: "http://localhost:8090/js" });
+}
+
 var config = {
   entry: {
     app: [
       "./src/index.ts",
     ],
   },
-  output: {
-    filename: "web-reader.js",
-    path: "./dist/js",
-    library: "WebReader",
-    libraryTarget: "umd"
-  },
+  output: output,
   plugins: [
     new webpack.DefinePlugin({ "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV) })
   ],

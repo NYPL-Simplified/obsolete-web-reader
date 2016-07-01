@@ -63,7 +63,7 @@ export default class Pages {
     this._render();
   }
 
-  setBackgroundColor(color: string) {
+  setBackgroundColor(color: string): void {
     this.bgColor = color;
     this._render();
   }
@@ -86,10 +86,10 @@ export default class Pages {
 
   getPosition(): PositionData {
     // find first image with left edge on the current page
-    let imageIndex = this._getImageIndex();
+    let imageIndex = this._getCurrentImageIndex();
 
     // find first text node with left edge on the current page or a higher page
-    let foundTextNodeIndex = this._getTextNodeIndex();
+    let foundTextNodeIndex = this._getCurrentTextNodeIndex();
 
     // if we didn't find a text node on this page
     if (foundTextNodeIndex === -1) {
@@ -168,6 +168,10 @@ export default class Pages {
     this._goToPage(page);
   }
 
+  getTextNodes(): Element[] {
+    return this.textNodes;
+  }
+
   // PRIVATE METHODS
 
   _render(width?: number, height?: number): void {
@@ -208,12 +212,12 @@ export default class Pages {
 
   _setupKeyHandling(): void {
     window.addEventListener("keydown", e => {
-      switch (e.key) {
-        case "ArrowLeft":
+      switch (e.keyCode) {
+        case 37:
           this.goToPrevPage();
           e.preventDefault();
           break;
-        case "ArrowRight":
+        case 39:
           this.goToNextPage();
           e.preventDefault();
           break;
@@ -322,13 +326,13 @@ export default class Pages {
     return this.range.getBoundingClientRect();
   }
 
-  _getTextNodeIndex(): number {
+  _getCurrentTextNodeIndex(): number {
     return (this.textNodes as any).findIndex(textNode => {
       return this._getTextNodeRect(textNode).left > 0;
     });
   }
 
-  _getImageIndex(): number {
+  _getCurrentImageIndex(): number {
     return (this.images as any).findIndex(image => {
       return image.getBoundingClientRect().left > 0;
     });

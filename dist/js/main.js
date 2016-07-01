@@ -1,5 +1,6 @@
-let pages;
+var pages;
+var search;
 
-document.addEventListener("DOMContentLoaded", () => {
-  pages = new Pages();
+document.addEventListener("DOMContentLoaded", function() {
+  pages = new WebReader.Pages();
 });

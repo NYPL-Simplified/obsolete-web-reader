@@ -1,3 +1,5 @@
 import Pages from "./Pages";
 
-export = Pages;
+let WebReader = { Pages };
+
+export = WebReader;

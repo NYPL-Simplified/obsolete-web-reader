@@ -8,14 +8,15 @@ app.use(express.static("dist"));
 
 app.get("/resources/:book/:name.html", function(req, res) {
   var content = fs.readFileSync(path.join("resources", req.params.book, req.params.name + ".html"), { encoding: "utf-8" });
-  var jsUrl =
+  var jsPath =
     process.env.NODE_ENV === "production" ?
-    "/js/pagination.js" :
-    "http://localhost:3002/js/pagination.js";
+    "/js" :
+    "http://localhost:3002/js";
   var contentWithJs = content.replace(
     /<\/head>/,
     '<link href="/css/main.css" rel="stylesheet"></head>' +
-    '<script src="' + jsUrl + '"></script>' +
+    '<script src="/js/lunr.js"></script>' +
+    '<script src="' + jsPath + '/web-reader.js"></script>' +
     '<script src="/js/main.js"></script>'
   );
   res.send(contentWithJs);
