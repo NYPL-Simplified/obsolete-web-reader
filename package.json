@@ -13,7 +13,7 @@
     "build": "NODE_ENV=production webpack -p --progress --display-modules --config webpack.config",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "matthew skomarovsky",
+  "author": "NYPL",
   "license": "Apache-2.0",
   "dependencies": {
     "ejs": "^2.4.2",
